@@ -17,7 +17,7 @@
             font-family: 'Segoe UI', sans-serif;
         }
 
-        #menu {
+        #menu, #game-over-screen {
             background-color: #2d2d2d;
             padding: 25px;
             border-radius: 15px;
@@ -26,7 +26,10 @@
             width: 320px;
         }
 
+        #game-over-screen { display: none; position: absolute; z-index: 10; }
+
         h1 { color: #ff3e3e; margin-top: 0; font-size: 1.5rem; }
+        h2 { color: #ff3e3e; }
 
         .campo { margin-bottom: 15px; text-align: left; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
@@ -42,28 +45,28 @@
             font-weight: bold;
             cursor: pointer;
             font-size: 1rem;
+            margin-bottom: 10px;
         }
 
-        #game-container { display: none; text-align: center; }
-        canvas { border: 4px solid #333; background: #000; }
+        button.secundario { background-color: #666; }
+
+        #game-container { display: none; text-align: center; position: relative; }
+        canvas { border: 4px solid #333; background: #000; display: block; }
         .stats { font-size: 1.5rem; margin-top: 10px; }
-        #btn-voltar { margin-top: 10px; background: #666; width: auto; padding: 8px 20px; }
     </style>
 </head>
 <body>
 
     <div id="menu">
         <h1>JOGO DE COBRA DO ENZO</h1>
-        
         <div class="campo">
             <label>Tamanho do Mapa:</label>
             <select id="map-size">
-                <option value="3">3x3 (Dificílimo!)</option>
-                <option value="6">6x6 (Médio)</option>
-                <option value="9" selected>9x9 (Padrão)</option>
+                <option value="9" selected>9x9 (Pequeno)</option>
+                <option value="12">12x12 (Médio)</option>
+                <option value="20">20x20 (Grande)</option>
             </select>
         </div>
-
         <div class="campo">
             <label>Cor da Cobra:</label>
             <select id="snake-color">
@@ -73,7 +76,6 @@
                 <option value="#ffeb3b">Amarela</option>
             </select>
         </div>
-
         <div class="campo">
             <label>Velocidade:</label>
             <select id="speed">
@@ -82,14 +84,19 @@
                 <option value="90">Rápida</option>
             </select>
         </div>
+        <button onclick="configurarEIniciar()">JOGAR</button>
+    </div>
 
-        <button onclick="iniciarJogo()">JOGAR AGORA</button>
+    <div id="game-over-screen">
+        <h2>FIM DE JOGO!</h2>
+        <p id="final-score-text"></p>
+        <button onclick="reiniciarPartida()">JOGAR NOVAMENTE</button>
+        <button class="secundario" onclick="voltarAoMenu()">VOLTAR AO MENU</button>
     </div>
 
     <div id="game-container">
         <canvas id="snakeGame"></canvas>
         <div class="stats">Maçãs: <span id="score">0</span></div>
-        <button id="btn-voltar" onclick="location.reload()">Sair</button>
     </div>
 
     <script>
@@ -97,7 +104,7 @@
         const ctx = canvas.getContext('2d');
         let cobra, fruta, direcao, placar, loop, tamanhoTile, tamanhoGrid, corCobra, velocidade;
 
-        function iniciarJogo() {
+        function configurarEIniciar() {
             tamanhoGrid = parseInt(document.getElementById('map-size').value);
             corCobra = document.getElementById('snake-color').value;
             velocidade = parseInt(document.getElementById('speed').value);
@@ -108,8 +115,14 @@
             canvas.height = areaVisual;
 
             document.getElementById('menu').style.display = 'none';
+            document.getElementById('game-over-screen').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
 
+            reiniciarPartida();
+        }
+
+        function reiniciarPartida() {
+            document.getElementById('game-over-screen').style.display = 'none';
             cobra = [{ x: Math.floor(tamanhoGrid/2), y: Math.floor(tamanhoGrid/2) }];
             direcao = 'DIREITA';
             placar = 0;
@@ -120,11 +133,19 @@
             loop = setInterval(desenhar, velocidade);
         }
 
+        function voltarAoMenu() {
+            document.getElementById('game-over-screen').style.display = 'none';
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('menu').style.display = 'block';
+        }
+
         function criarFruta() {
             fruta = {
                 x: Math.floor(Math.random() * tamanhoGrid),
                 y: Math.floor(Math.random() * tamanhoGrid)
             };
+            // Evita fruta na cobra
+            if(cobra.some(p => p.x === fruta.x && p.y === fruta.y)) criarFruta();
         }
 
         document.addEventListener('keydown', (e) => {
@@ -138,7 +159,7 @@
             ctx.fillStyle = 'black';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Desenha Maçã
+            // Fruta
             ctx.fillStyle = 'red';
             ctx.beginPath();
             let cx = fruta.x * tamanhoTile + tamanhoTile/2;
@@ -146,7 +167,6 @@
             ctx.arc(cx, cy, tamanhoTile/2.5, 0, Math.PI * 2);
             ctx.fill();
 
-            // Lógica de Movimento
             let cabecaX = cobra[0].x;
             let cabecaY = cobra[0].y;
 
@@ -155,12 +175,12 @@
             if (direcao === 'CIMA') cabecaY--;
             if (direcao === 'BAIXO') cabecaY++;
 
-            // Verificação de Morte
+            // Morte
             if (cabecaX < 0 || cabecaX >= tamanhoGrid || cabecaY < 0 || cabecaY >= tamanhoGrid || 
-                cobra.some((p, i) => i !== 0 && p.x === cabecaX && p.y === cabecaY)) {
+                cobra.some(p => p.x === cabecaX && p.y === cabecaY)) {
                 clearInterval(loop);
-                alert('FIM DE JOGO! O Enzo comeu ' + placar + ' maçãs!');
-                location.reload();
+                document.getElementById('final-score-text').innerText = "O Enzo comeu " + placar + " maçãs!";
+                document.getElementById('game-over-screen').style.display = 'block';
                 return;
             }
 
@@ -176,7 +196,6 @@
 
             cobra.unshift(novaCabeca);
 
-            // Desenha Cobra
             cobra.forEach((p, i) => {
                 ctx.fillStyle = i === 0 ? 'white' : corCobra;
                 ctx.fillRect(p.x * tamanhoTile + 1, p.y * tamanhoTile + 1, tamanhoTile - 2, tamanhoTile - 2);
