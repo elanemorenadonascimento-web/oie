@@ -3,95 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JOGO DE COBRA DO ENZO - PRO</title>
+    <title>SNAKE ENZO ULTIMATE</title>
     <style>
         body {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; margin: 0; background-color: #1a1a1a; color: #fff;
-            font-family: 'Segoe UI', sans-serif; overflow: hidden;
+            min-height: 100vh; margin: 0; background-color: #111; color: #fff;
+            font-family: 'Segoe UI', sans-serif; overflow: hidden; position: relative;
         }
+        /* Fundo Animado */
+        #bg-canvas { position: absolute; top: 0; left: 0; z-index: -1; filter: blur(2px) opacity(0.3); }
+
         #menu, #game-over-screen, #loja {
-            background-color: #2d2d2d; padding: 25px; border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; width: 350px;
+            background-color: rgba(45, 45, 45, 0.9); padding: 25px; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); text-align: center; width: 360px;
+            backdrop-filter: blur(10px); border: 1px solid #444;
         }
         #game-over-screen, #loja, #game-container { display: none; }
-        h1, h2 { color: #ff3e3e; margin: 0 0 10px 0; }
+        
+        h1 { color: #ff3e3e; margin: 0 0 10px 0; font-size: 1.8rem; text-shadow: 0 0 10px rgba(255,62,62,0.5); }
         .campo { margin-bottom: 12px; text-align: left; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; color: #bbb; }
         select, button { width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
-        button { background-color: #4caf50; color: white; margin-top: 10px; }
-        .btn-secreto {
-            position: absolute; top: 0; right: 0; width: 40px; height: 40px;
-            background: transparent; border: none; cursor: default; z-index: 100;
-        }
-        .btn-lixeira {
-            position: absolute; bottom: 10px; right: 10px; width: 40px; height: 40px;
-            background: #ff3e3e; border-radius: 50%; border: none; cursor: pointer; font-size: 1.2rem;
-        }
-        .stats-topo { display: flex; justify-content: space-around; width: 100%; margin-bottom: 10px; font-size: 1.2rem; font-weight: bold; }
-        .item-loja { 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: #444; padding: 8px; margin: 5px 0; border-radius: 5px;
-        }
-        .item-loja button { width: auto; margin: 0; padding: 5px 10px; }
-        canvas { border: 4px solid #333; background: #000; }
+        
+        button { background-color: #4caf50; color: white; margin-top: 10px; transition: 0.2s; }
+        button:hover { transform: scale(1.02); filter: brightness(1.1); }
+
+        .btn-secreto { position: absolute; top: 0; right: 0; width: 45px; height: 45px; background: transparent; border: none; z-index: 100; }
+        .btn-lixeira { position: absolute; bottom: 15px; right: 15px; width: 45px; height: 45px; background: #ff3e3e; border-radius: 50%; border: none; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
+
+        .stats-topo { display: flex; justify-content: space-around; width: 360px; margin-bottom: 10px; font-size: 1.3rem; font-weight: bold; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 8px; }
+        
+        #lista-cabecas { max-height: 250px; overflow-y: auto; margin: 10px 0; padding-right: 5px; }
+        .item-loja { display: flex; justify-content: space-between; align-items: center; background: #3d3d3d; padding: 10px; margin: 5px 0; border-radius: 8px; border: 1px solid #555; }
+        .item-loja button { width: auto; margin: 0; padding: 5px 12px; font-size: 0.8rem; }
+        
+        canvas#snakeGame { border: 5px solid #333; background: #000; box-shadow: 0 0 20px rgba(0,0,0,1); }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 10px; }
     </style>
 </head>
 <body>
 
+    <canvas id="bg-canvas"></canvas>
     <button class="btn-secreto" onclick="hack()"></button>
     <button class="btn-lixeira" onclick="resetTotal()">🗑️</button>
 
     <div id="menu">
-        <h1>SNAKE ENZO PRO</h1>
+        <h1>SNAKE ENZO ULTIMATE</h1>
         <p>🍎 Maçãs: <span id="total-maca">0</span> | 🏆 Recorde: <span id="recorde">0</span></p>
         
         <div class="campo">
             <label>Tamanho do Mapa:</label>
             <select id="map-size">
-                <option value="9">9x9</option>
-                <option value="12">12x12</option>
-                <option value="20" selected>20x20</option>
+                <option value="9">9x9 (Clássico)</option>
+                <option value="12">12x12 (Intermediário)</option>
+                <option value="20" selected>20x20 (Gamer)</option>
             </select>
         </div>
         <div class="campo">
-            <label>Cor da Cobra:</label>
+            <label>Cor do Corpo:</label>
             <select id="snake-body-color">
-                <option value="#4caf50">Verde</option>
-                <option value="#2196f3">Azul</option>
-                <option value="#e91e63">Rosa</option>
-                <option value="#ffeb3b">Amarela</option>
-                <option value="#ffffff">Branca</option>
+                <option value="#4caf50">Verde Clássico</option>
+                <option value="#2196f3">Azul Neon</option>
+                <option value="#e91e63">Rosa Porquinho</option>
+                <option value="#ffeb3b">Amarelo Sol</option>
+                <option value="#ff5722">Laranja Fogo</option>
+                <option value="#9c27b0">Roxo Místico</option>
+                <option value="#00bcd4">Ciano Água</option>
+                <option value="#ffffff">Branco Puro</option>
+                <option value="#795548">Marrom Terra</option>
+                <option value="#607d8b">Cinza Espacial</option>
             </select>
         </div>
         <div class="campo">
-            <label>Velocidade:</label>
+            <label>Dificuldade:</label>
             <select id="speed">
-                <option value="350">Lenta</option>
-                <option value="180" selected>Média</option>
-                <option value="80">Rápida</option>
+                <option value="350">Lenta (Passeio)</option>
+                <option value="180" selected>Média (Normal)</option>
+                <option value="80">Rápida (Hardcore)</option>
             </select>
         </div>
-        <button onclick="configurarEIniciar()">JOGAR</button>
+        <button onclick="configurarEIniciar()">INICIAR JOGO</button>
         <button style="background:#2196f3" onclick="abrirLoja()">LOJA DE CABEÇAS</button>
     </div>
 
     <div id="loja">
-        <h2>LOJA (🍎 <span id="loja-saldo">0</span>)</h2>
+        <h2>SKINS (🍎 <span id="loja-saldo">0</span>)</h2>
         <div id="lista-cabecas"></div>
         <button onclick="voltarMenu()" style="background:#666">VOLTAR</button>
     </div>
 
     <div id="game-over-screen">
-        <h2>FIM DE JOGO!</h2>
-        <p id="score-atual"></p>
-        <button onclick="reiniciar()">JOGAR DE NOVO</button>
-        <button onclick="voltarMenu()" style="background:#666">MENU</button>
+        <h2>VOCÊ BATEU!</h2>
+        <p id="score-atual" style="font-size: 1.2rem;"></p>
+        <button onclick="reiniciar()">TENTAR DE NOVO</button>
+        <button onclick="voltarMenu()" style="background:#666">MENU PRINCIPAL</button>
     </div>
 
     <div id="game-container">
         <div class="stats-topo">
-            <span>🍎: <span id="ingame-score">0</span></span>
-            <span>🏆: <span id="ingame-record">0</span></span>
+            <span style="color: #ff3e3e;">🍎 <span id="ingame-score">0</span></span>
+            <span style="color: #ffeb3b;">🏆 <span id="ingame-record">0</span></span>
         </div>
         <canvas id="snakeGame"></canvas>
     </div>
@@ -99,25 +111,54 @@
     <script>
         const canvas = document.getElementById('snakeGame');
         const ctx = canvas.getContext('2d');
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
         let hackUsado = false;
 
-        let dados = JSON.parse(localStorage.getItem('snakeEnzo')) || {
+        let dados = JSON.parse(localStorage.getItem('snakeEnzoV3')) || {
             totalMacas: 0, recorde: 0, cabecaAtual: '⚪', cabecasCompradas: ['⚪']
         };
 
         const cabecas = [
             {id: '⚪', preco: 0, nome: 'Padrão'},
-            {id: '😎', preco: 10, nome: 'Estiloso'},
-            {id: '🐍', preco: 10, nome: 'Cobra'},
-            {id: '🤖', preco: 10, nome: 'Robô'},
-            {id: '👑', preco: 20, nome: 'Rei'},
-            {id: '🐱', preco: 30, nome: 'Gatinho'},
-            {id: '👽', preco: 50, nome: 'Alien'}
+            {id: '🐍', preco: 10, nome: 'Cobra Real'},
+            {id: '🐷', preco: 10, nome: 'Porquinho'},
+            {id: '🐱', preco: 10, nome: 'Gatinho'},
+            {id: '🐶', preco: 10, nome: 'Cachorrinho'},
+            {id: '🦁', preco: 20, nome: 'Leão'},
+            {id: '🤖', preco: 20, nome: 'Robô Dev'},
+            {id: '👽', preco: 30, nome: 'Invasor'},
+            {id: '👑', preco: 40, nome: 'Rei Enzo'},
+            {id: '🔥', preco: 50, nome: 'Cobra de Fogo'}
         ];
 
         let cobra, fruta, direcao, placar, loop, tTile, tGrid, velocidade, corCorpo;
 
-        function salvar() { localStorage.setItem('snakeEnzo', JSON.stringify(dados)); atualizarUI(); }
+        // Animação de Fundo
+        bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight;
+        let bgSnakes = Array(5).fill().map(() => ({
+            body: Array(10).fill().map((_, i) => ({x: 100 - i*10, y: 100})),
+            color: `hsl(${Math.random()*360}, 50%, 50%)`,
+            dir: Math.random() * Math.PI * 2
+        }));
+
+        function animarBG() {
+            bgCtx.clearRect(0,0,bgCanvas.width, bgCanvas.height);
+            bgSnakes.forEach(s => {
+                s.dir += (Math.random() - 0.5) * 0.5;
+                let head = { x: s.body[0].x + Math.cos(s.dir)*5, y: s.body[0].y + Math.sin(s.dir)*5 };
+                if(head.x < 0) head.x = bgCanvas.width; if(head.x > bgCanvas.width) head.x = 0;
+                if(head.y < 0) head.y = bgCanvas.height; if(head.y > bgCanvas.height) head.y = 0;
+                s.body.unshift(head); s.body.pop();
+                bgCtx.beginPath(); bgCtx.strokeStyle = s.color; bgCtx.lineWidth = 15; bgCtx.lineCap = 'round';
+                s.body.forEach((p, i) => i === 0 ? bgCtx.moveTo(p.x, p.y) : bgCtx.lineTo(p.x, p.y));
+                bgCtx.stroke();
+            });
+            requestAnimationFrame(animarBG);
+        }
+        animarBG();
+
+        function salvar() { localStorage.setItem('snakeEnzoV3', JSON.stringify(dados)); atualizarUI(); }
         function atualizarUI() {
             document.getElementById('total-maca').innerText = dados.totalMacas;
             document.getElementById('recorde').innerText = dados.recorde;
@@ -126,15 +167,13 @@
 
         function hack() {
             if(!hackUsado) {
-                dados.totalMacas += 1000;
-                alert("HACK: +1000 Maçãs! Vá na loja comprar suas cabeças.");
-                hackUsado = true;
-                salvar();
+                dados.totalMacas += 1000; alert("💰 HACK ATIVADO: +1000 MAÇÃS!");
+                hackUsado = true; salvar();
             }
         }
 
         function resetTotal() {
-            if(confirm("CERTEZA QUE QUER APAGAR TODO O PROGRESSO?")) {
+            if(confirm("CERTEZA QUE QUER APAGAR TUDO?")) {
                 dados = { totalMacas: 0, recorde: 0, cabecaAtual: '⚪', cabecasCompradas: ['⚪'] };
                 salvar();
             }
@@ -150,9 +189,9 @@
                 const selecionada = dados.cabecaAtual === c.id;
                 lista.innerHTML += `
                     <div class="item-loja">
-                        <span>${c.id} ${c.nome}</span>
+                        <span style="font-size:1.3rem">${c.id} <small>${c.nome}</small></span>
                         <button onclick="acaoLoja('${c.id}', ${c.preco})" style="background: ${selecionada ? '#4caf50' : '#2196f3'}">
-                            ${comprou ? (selecionada ? 'USANDO' : 'USAR') : c.preco + '🍎'}
+                            ${comprou ? (selecionada ? 'USANDO' : 'USAR') : c.preco + ' 🍎'}
                         </button>
                     </div>`;
             });
@@ -161,9 +200,7 @@
         function acaoLoja(id, preco) {
             if(dados.cabecasCompradas.includes(id)) { dados.cabecaAtual = id; }
             else if(dados.totalMacas >= preco) {
-                dados.totalMacas -= preco;
-                dados.cabecasCompradas.push(id);
-                dados.cabecaAtual = id;
+                dados.totalMacas -= preco; dados.cabecasCompradas.push(id); dados.cabecaAtual = id;
             }
             salvar(); abrirLoja();
         }
@@ -204,7 +241,9 @@
 
         function desenhar() {
             ctx.fillStyle = '#000'; ctx.fillRect(0,0,360,360);
-            ctx.fillStyle = 'red'; ctx.beginPath();
+            
+            // Desenha a Fruta (Maçã)
+            ctx.fillStyle = '#ff3e3e'; ctx.beginPath();
             ctx.arc(fruta.x*tTile+tTile/2, fruta.y*tTile+tTile/2, tTile/2.5, 0, Math.PI*2); ctx.fill();
 
             let nx = cobra[0].x, ny = cobra[0].y;
@@ -215,7 +254,7 @@
                 dados.totalMacas += placar;
                 if(placar > dados.recorde) dados.recorde = placar;
                 salvar();
-                document.getElementById('score-atual').innerText = `Maçãs pegas: ${placar}`;
+                document.getElementById('score-atual').innerText = `O Enzo fez ${placar} pontos!`;
                 document.getElementById('game-over-screen').style.display = 'block';
                 return;
             }
@@ -227,8 +266,7 @@
 
             cobra.forEach((p, i) => {
                 if(i===0) {
-                    ctx.font = `${tTile}px Arial`;
-                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.font = `${tTile}px Arial`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                     ctx.fillText(dados.cabecaAtual, p.x*tTile+tTile/2, p.y*tTile+tTile/2);
                 } else {
                     ctx.fillStyle = corCorpo;
@@ -237,7 +275,12 @@
             });
         }
 
-        function voltarMenu() { document.getElementById('game-container').style.display = 'none'; document.getElementById('game-over-screen').style.display = 'none'; document.getElementById('loja').style.display = 'none'; document.getElementById('menu').style.display = 'block'; }
+        function voltarMenu() { 
+            document.getElementById('game-container').style.display = 'none'; 
+            document.getElementById('game-over-screen').style.display = 'none'; 
+            document.getElementById('loja').style.display = 'none'; 
+            document.getElementById('menu').style.display = 'block'; 
+        }
         atualizarUI();
     </script>
 </body>
