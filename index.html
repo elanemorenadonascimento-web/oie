@@ -2,108 +2,186 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Snake Game Neon</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOGO DE COBRA DO ENZO</title>
     <style>
         body {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #050505;
-            color: #00ff88;
-            font-family: 'Courier New', Courier, monospace;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: 'Segoe UI', sans-serif;
         }
-        canvas {
-            border: 5px solid #00ff88;
-            box-shadow: 0 0 20px #00ff88;
-            background-color: #000;
+
+        #menu {
+            background-color: #2d2d2d;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 320px;
         }
-        h1 { margin: 10px; text-shadow: 0 0 10px #00ff88; }
-        .score { font-size: 24px; margin-bottom: 10px; }
+
+        h1 { color: #ff3e3e; margin-top: 0; font-size: 1.5rem; }
+
+        .campo { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        select { width: 100%; padding: 8px; border-radius: 5px; background: #444; color: white; border: none; }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        #game-container { display: none; text-align: center; }
+        canvas { border: 4px solid #333; background: #000; }
+        .stats { font-size: 1.5rem; margin-top: 10px; }
+        #btn-voltar { margin-top: 10px; background: #666; width: auto; padding: 8px 20px; }
     </style>
 </head>
 <body>
 
-    <h1>SNAKE PYTHON STYLE</h1>
-    <div class="score">Pontos: <span id="pontos">0</span></div>
-    <canvas id="snake" width="400" height="400"></canvas>
+    <div id="menu">
+        <h1>JOGO DE COBRA DO ENZO</h1>
+        
+        <div class="campo">
+            <label>Tamanho do Mapa:</label>
+            <select id="map-size">
+                <option value="3">3x3 (Dificílimo!)</option>
+                <option value="6">6x6 (Médio)</option>
+                <option value="9" selected>9x9 (Padrão)</option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <label>Cor da Cobra:</label>
+            <select id="snake-color">
+                <option value="#4caf50">Verde</option>
+                <option value="#2196f3">Azul</option>
+                <option value="#e91e63">Rosa</option>
+                <option value="#ffeb3b">Amarela</option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <label>Velocidade:</label>
+            <select id="speed">
+                <option value="350">Lenta</option>
+                <option value="180" selected>Média</option>
+                <option value="90">Rápida</option>
+            </select>
+        </div>
+
+        <button onclick="iniciarJogo()">JOGAR AGORA</button>
+    </div>
+
+    <div id="game-container">
+        <canvas id="snakeGame"></canvas>
+        <div class="stats">Maçãs: <span id="score">0</span></div>
+        <button id="btn-voltar" onclick="location.reload()">Sair</button>
+    </div>
 
     <script>
-        const canvas = document.getElementById("snake");
-        const ctx = canvas.getContext("2d");
-        const pontosDoc = document.getElementById("pontos");
-        const box = 20;
-        let snake = [{ x: 10 * box, y: 10 * box }];
-        let direcao = "RIGHT";
-        let comida = {
-            x: Math.floor(Math.random() * 19 + 1) * box,
-            y: Math.floor(Math.random() * 19 + 1) * box
-        };
-        let pontos = 0;
+        const canvas = document.getElementById('snakeGame');
+        const ctx = canvas.getContext('2d');
+        let cobra, fruta, direcao, placar, loop, tamanhoTile, tamanhoGrid, corCobra, velocidade;
 
-        // Controles
-        document.addEventListener("keydown", (event) => {
-            if(event.keyCode == 37 && direcao != "RIGHT") direcao = "LEFT";
-            if(event.keyCode == 38 && direcao != "DOWN") direcao = "UP";
-            if(event.keyCode == 39 && direcao != "LEFT") direcao = "RIGHT";
-            if(event.keyCode == 40 && direcao != "UP") direcao = "DOWN";
+        function iniciarJogo() {
+            tamanhoGrid = parseInt(document.getElementById('map-size').value);
+            corCobra = document.getElementById('snake-color').value;
+            velocidade = parseInt(document.getElementById('speed').value);
+            
+            const areaVisual = 360; 
+            tamanhoTile = areaVisual / tamanhoGrid;
+            canvas.width = areaVisual;
+            canvas.height = areaVisual;
+
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game-container').style.display = 'block';
+
+            cobra = [{ x: Math.floor(tamanhoGrid/2), y: Math.floor(tamanhoGrid/2) }];
+            direcao = 'DIREITA';
+            placar = 0;
+            document.getElementById('score').innerText = placar;
+            criarFruta();
+            
+            if(loop) clearInterval(loop);
+            loop = setInterval(desenhar, velocidade);
+        }
+
+        function criarFruta() {
+            fruta = {
+                x: Math.floor(Math.random() * tamanhoGrid),
+                y: Math.floor(Math.random() * tamanhoGrid)
+            };
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' && direcao !== 'BAIXO') direcao = 'CIMA';
+            if (e.key === 'ArrowDown' && direcao !== 'CIMA') direcao = 'BAIXO';
+            if (e.key === 'ArrowLeft' && direcao !== 'DIREITA') direcao = 'ESQUERDA';
+            if (e.key === 'ArrowRight' && direcao !== 'ESQUERDA') direcao = 'DIREITA';
         });
 
         function desenhar() {
-            ctx.fillStyle = "black";
-            ctx.fillRect(0, 0, 400, 400);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            for(let i = 0; i < snake.length; i++) {
-                ctx.fillStyle = (i == 0) ? "#00ff88" : "#008844";
-                ctx.fillRect(snake[i].x, snake[i].y, box, box);
-                ctx.strokeStyle = "black";
-                ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+            // Desenha Maçã
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            let cx = fruta.x * tamanhoTile + tamanhoTile/2;
+            let cy = fruta.y * tamanhoTile + tamanhoTile/2;
+            ctx.arc(cx, cy, tamanhoTile/2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Lógica de Movimento
+            let cabecaX = cobra[0].x;
+            let cabecaY = cobra[0].y;
+
+            if (direcao === 'DIREITA') cabecaX++;
+            if (direcao === 'ESQUERDA') cabecaX--;
+            if (direcao === 'CIMA') cabecaY--;
+            if (direcao === 'BAIXO') cabecaY++;
+
+            // Verificação de Morte
+            if (cabecaX < 0 || cabecaX >= tamanhoGrid || cabecaY < 0 || cabecaY >= tamanhoGrid || 
+                cobra.some((p, i) => i !== 0 && p.x === cabecaX && p.y === cabecaY)) {
+                clearInterval(loop);
+                alert('FIM DE JOGO! O Enzo comeu ' + placar + ' maçãs!');
+                location.reload();
+                return;
             }
 
-            ctx.fillStyle = "#ff0055"; // Cor da comida
-            ctx.fillRect(comida.x, comida.y, box, box);
+            const novaCabeca = { x: cabecaX, y: cabecaY };
 
-            let snakeX = snake[0].x;
-            let snakeY = snake[0].y;
-
-            if( direcao == "LEFT") snakeX -= box;
-            if( direcao == "UP") snakeY -= box;
-            if( direcao == "RIGHT") snakeX += box;
-            if( direcao == "DOWN") snakeY += box;
-
-            if(snakeX == comida.x && snakeY == comida.y) {
-                pontos++;
-                pontosDoc.innerHTML = pontos;
-                comida = {
-                    x: Math.floor(Math.random() * 19 + 1) * box,
-                    y: Math.floor(Math.random() * 19 + 1) * box
-                };
+            if (cabecaX === fruta.x && cabecaY === fruta.y) {
+                placar++;
+                document.getElementById('score').innerText = placar;
+                criarFruta();
             } else {
-                snake.pop();
+                cobra.pop();
             }
 
-            let novoCabeca = { x: snakeX, y: snakeY };
+            cobra.unshift(novaCabeca);
 
-            // Game Over
-            if(snakeX < 0 || snakeX >= 400 || snakeY < 0 || snakeY >= 400 || colidindo(novoCabeca, snake)) {
-                clearInterval(jogo);
-                alert("GAME OVER! Pontuação: " + pontos);
-                location.reload(); // Reinicia o jogo
-            }
-
-            snake.unshift(novoCabeca);
+            // Desenha Cobra
+            cobra.forEach((p, i) => {
+                ctx.fillStyle = i === 0 ? 'white' : corCobra;
+                ctx.fillRect(p.x * tamanhoTile + 1, p.y * tamanhoTile + 1, tamanhoTile - 2, tamanhoTile - 2);
+            });
         }
-
-        function colidindo(head, array) {
-            for(let i = 0; i < array.length; i++) {
-                if(head.x == array[i].x && head.y == array[i].y) return true;
-            }
-            return false;
-        }
-
-        let jogo = setInterval(desenhar, 100); // Velocidade do jogo
     </script>
 </body>
 </html>
