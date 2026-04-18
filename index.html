@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SNAKE ENZO ULTIMATE</title>
+    <title>JOGO DE COBRA DO ENZO</title>
     <style>
         body {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh; margin: 0; background-color: #1a1a1a; color: #fff;
             font-family: 'Segoe UI', sans-serif; overflow: hidden; position: relative;
         }
-        /* Fundo Animado do Menu */
-        #bg-canvas { position: absolute; top: 0; left: 0; z-index: -1; filter: opacity(0.2); }
+        /* Fundo do Menu */
+        #bg-canvas { position: absolute; top: 0; left: 0; z-index: -1; opacity: 0.3; }
 
         #menu, #game-over-screen, #loja {
             background-color: rgba(45, 45, 45, 0.95); padding: 25px; border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8); text-align: center; width: 360px;
-            backdrop-filter: blur(10px); border: 1px solid #444;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); text-align: center; width: 350px;
+            border: 1px solid #444;
         }
         #game-over-screen, #loja, #game-container { display: none; }
         
@@ -31,7 +31,6 @@
         .btn-lixeira { position: absolute; bottom: 15px; right: 15px; width: 45px; height: 45px; background: #ff3e3e; border-radius: 50%; border: none; cursor: pointer; font-size: 1.2rem; color: white; }
 
         .stats-topo { display: flex; justify-content: space-around; width: 360px; margin-bottom: 10px; font-size: 1.3rem; font-weight: bold; }
-        
         #lista-cabecas { max-height: 200px; overflow-y: auto; margin: 10px 0; }
         .item-loja { display: flex; justify-content: space-between; align-items: center; background: #3d3d3d; padding: 10px; margin: 5px 0; border-radius: 8px; }
         .item-loja button { width: auto; margin: 0; padding: 5px 12px; }
@@ -48,8 +47,8 @@
     <div id="menu">
         <h1>JOGO DE COBRA DO ENZO</h1>
         <div class="campo">
-            <label>Seu Nome:</label>
-            <input type="text" id="player-name" placeholder="Digite seu nome..." maxlength="15">
+            <label>Nome do Jogador:</label>
+            <input type="text" id="player-name" placeholder="Digite aqui..." maxlength="15">
         </div>
         <div class="campo">
             <label>Tamanho do Mapa:</label>
@@ -60,18 +59,22 @@
             </select>
         </div>
         <div class="campo">
-            <label>Cor do Corpo:</label>
+            <label>Cor da Cobra:</label>
             <select id="snake-body-color">
-                <option value="#4caf50">Verde</option>
-                <option value="#2196f3">Azul</option>
-                <option value="#e91e63">Rosa</option>
-                <option value="#ffeb3b">Amarelo</option>
-                <option value="#ffffff">Branco</option>
-                <option value="#9c27b0">Roxo</option>
+                <option value="red">Vermelho</option>
+                <option value="orange">Laranja</option>
+                <option value="yellow">Amarelo</option>
+                <option value="green" selected>Verde</option>
+                <option value="cyan">Ciano</option>
+                <option value="blue">Azul</option>
+                <option value="purple">Roxo</option>
+                <option value="pink">Rosa</option>
+                <option value="white">Branco</option>
+                <option value="gray">Cinza</option>
             </select>
         </div>
         <div class="campo">
-            <label>Dificuldade:</label>
+            <label>Velocidade:</label>
             <select id="speed">
                 <option value="350">Lenta</option>
                 <option value="180" selected>Média</option>
@@ -83,13 +86,13 @@
     </div>
 
     <div id="loja">
-        <h2>SKINS (🍎 <span id="loja-saldo">0</span>)</h2>
+        <h2>CABEÇAS (🍎 <span id="loja-saldo">0</span>)</h2>
         <div id="lista-cabecas"></div>
         <button onclick="voltarMenu()" style="background:#666">VOLTAR</button>
     </div>
 
     <div id="game-over-screen">
-        <h2 id="msg-morte">FIM DE JOGO</h2>
+        <h2 id="msg-morte">BATEU!</h2>
         <p id="score-atual"></p>
         <button onclick="reiniciar()">JOGAR DE NOVO</button>
         <button onclick="voltarMenu()" style="background:#666">MENU</button>
@@ -109,52 +112,46 @@
         const bgCanvas = document.getElementById('bg-canvas');
         const bgCtx = bgCanvas.getContext('2d');
         let hackUsado = false;
-        let menuAtivo = true;
+        let emJogo = false;
 
-        let dados = JSON.parse(localStorage.getItem('snakeEnzoV4')) || {
-            totalMacas: 0, recorde: 0, cabecaAtual: '⚪', cabecasCompradas: ['⚪'], ultimoNome: ''
+        let dados = JSON.parse(localStorage.getItem('snakeEnzoV5')) || {
+            totalMacas: 0, recorde: 0, cabecaAtual: '⚪', cabecasCompradas: ['⚪'], nome: ''
         };
-        document.getElementById('player-name').value = dados.ultimoNome;
+        document.getElementById('player-name').value = dados.nome;
 
-        const cabecas = [
-            {id: '⚪', preco: 0, nome: 'Padrão'}, {id: '🐍', preco: 10, nome: 'Cobra'},
-            {id: '🐷', preco: 10, nome: 'Porco'}, {id: '🐱', preco: 10, nome: 'Gato'},
-            {id: '🦁', preco: 20, nome: 'Leão'}, {id: '🤖', preco: 20, nome: 'Robô'},
-            {id: '👽', preco: 30, nome: 'Alien'}, {id: '👑', preco: 40, nome: 'Rei'},
-            {id: '🔥', preco: 50, nome: 'Fogo'}, {id: '💀', preco: 60, nome: 'Caveira'}
+        const cabecasLoja = [
+            {id: '⚪', preco: 0}, {id: '🐍', preco: 10}, {id: '🐷', preco: 10}, 
+            {id: '🐱', preco: 10}, {id: '🐶', preco: 10}, {id: '🦁', preco: 20}, 
+            {id: '🤖', preco: 20}, {id: '👽', preco: 30}, {id: '👑', preco: 40}, {id: '🔥', preco: 50}
         ];
 
         let cobra, fruta, direcao, placar, loop, tTile, tGrid, velocidade, corCorpo, nomePlayer;
 
-        // Animação Fundo
+        // --- Lógica do Fundo (Menu) ---
         bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight;
-        let bgSnakes = Array(5).fill().map(() => ({
-            body: Array(10).fill().map((_, i) => ({x: 100, y: 100})),
-            color: `hsl(${Math.random()*360}, 50%, 50%)`, dir: Math.random() * 6
+        let snakesBG = Array(6).fill().map(() => ({
+            x: Math.random() * bgCanvas.width, y: Math.random() * bgCanvas.height,
+            cor: `hsl(${Math.random()*360}, 70%, 50%)`, angulo: Math.random() * 6
         }));
 
-        function animarBG() {
-            if(!menuAtivo) { bgCtx.clearRect(0,0,bgCanvas.width, bgCanvas.height); return; }
-            bgCtx.fillStyle = 'rgba(26, 26, 26, 0.2)';
+        function animarFundo() {
+            if(emJogo) { bgCtx.clearRect(0,0,bgCanvas.width, bgCanvas.height); return; }
+            bgCtx.fillStyle = 'rgba(26, 26, 26, 0.1)';
             bgCtx.fillRect(0,0,bgCanvas.width, bgCanvas.height);
-            bgSnakes.forEach(s => {
-                s.dir += (Math.random() - 0.5) * 0.4;
-                let head = { x: s.body[0].x + Math.cos(s.dir)*4, y: s.body[0].y + Math.sin(s.dir)*4 };
-                if(head.x < 0) head.x = bgCanvas.width; if(head.x > bgCanvas.width) head.x = 0;
-                if(head.y < 0) head.y = bgCanvas.height; if(head.y > bgCanvas.height) head.y = 0;
-                s.body.unshift(head); s.body.pop();
-                bgCtx.beginPath(); bgCtx.strokeStyle = s.color; bgCtx.lineWidth = 10; bgCtx.lineCap = 'round';
-                s.body.forEach((p, i) => i === 0 ? bgCtx.moveTo(p.x, p.y) : bgCtx.lineTo(p.x, p.y));
-                bgCtx.stroke();
+            snakesBG.forEach(s => {
+                s.angulo += (Math.random() - 0.5) * 0.2;
+                s.x += Math.cos(s.angulo) * 3;
+                s.y += Math.sin(s.angulo) * 3;
+                if(s.x < -50) s.x = bgCanvas.width + 50; if(s.x > bgCanvas.width + 50) s.x = -50;
+                if(s.y < -50) s.y = bgCanvas.height + 50; if(s.y > bgCanvas.height + 50) s.y = -50;
+                bgCtx.fillStyle = s.cor;
+                bgCtx.beginPath(); bgCtx.arc(s.x, s.y, 8, 0, Math.PI*2); bgCtx.fill();
             });
-            requestAnimationFrame(animarBG);
+            requestAnimationFrame(animarFundo);
         }
-        animarBG();
+        animarFundo();
 
-        function salvar() { localStorage.setItem('snakeEnzoV4', JSON.stringify(dados)); atualizarUI(); }
-        function atualizarUI() {
-            document.getElementById('loja-saldo').innerText = dados.totalMacas;
-        }
+        function salvar() { localStorage.setItem('snakeEnzoV5', JSON.stringify(dados)); }
 
         function hack() {
             if(!hackUsado) { dados.totalMacas += 1000; alert("HACK: +1000 Maçãs!"); hackUsado = true; salvar(); abrirLoja(); }
@@ -162,7 +159,7 @@
 
         function resetTotal() {
             if(confirm("CERTEZA QUE QUER APAGAR TUDO?")) {
-                dados = { totalMacas: 0, recorde: 0, cabecaAtual: '⚪', cabecasCompradas: ['⚪'], ultimoNome: '' };
+                dados = { totalMacas: 0, recorde: 0, cabecaAtual: '⚪', cabecasCompradas: ['⚪'], nome: '' };
                 salvar(); location.reload();
             }
         }
@@ -170,19 +167,19 @@
         function abrirLoja() {
             document.getElementById('menu').style.display = 'none';
             document.getElementById('loja').style.display = 'block';
+            document.getElementById('loja-saldo').innerText = dados.totalMacas;
             const lista = document.getElementById('lista-cabecas');
             lista.innerHTML = '';
-            cabecas.forEach(c => {
+            cabecasLoja.forEach(c => {
                 const comprou = dados.cabecasCompradas.includes(c.id);
                 const sel = dados.cabecaAtual === c.id;
-                lista.innerHTML += `<div class="item-loja"><span>${c.id} ${c.nome}</span>
-                <button onclick="acaoLoja('${c.id}', ${c.preco})" style="background:${sel?'#4caf50':'#2196f3'}">
+                lista.innerHTML += `<div class="item-loja"><span style="font-size:1.5rem">${c.id}</span>
+                <button onclick="comprarCabeça('${c.id}', ${c.preco})" style="background:${sel?'#4caf50':'#2196f3'}">
                 ${comprou?(sel?'USANDO':'USAR'):c.preco+'🍎'}</button></div>`;
             });
-            atualizarUI();
         }
 
-        function acaoLoja(id, preco) {
+        function comprarCabeça(id, preco) {
             if(dados.cabecasCompradas.includes(id)) dados.cabecaAtual = id;
             else if(dados.totalMacas >= preco) { dados.totalMacas -= preco; dados.cabecasCompradas.push(id); dados.cabecaAtual = id; }
             salvar(); abrirLoja();
@@ -190,16 +187,16 @@
 
         function configurarEIniciar() {
             nomePlayer = document.getElementById('player-name').value || "Jogador";
-            dados.ultimoNome = nomePlayer;
+            dados.nome = nomePlayer; salvar();
             tGrid = parseInt(document.getElementById('map-size').value);
             velocidade = parseInt(document.getElementById('speed').value);
             corCorpo = document.getElementById('snake-body-color').value;
             tTile = 360 / tGrid;
             canvas.width = canvas.height = 360;
-            menuAtivo = false;
+            emJogo = true;
             document.getElementById('menu').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
-            salvar(); reiniciar();
+            reiniciar();
         }
 
         function reiniciar() {
@@ -226,7 +223,7 @@
         });
 
         function desenhar() {
-            ctx.fillStyle = '#222'; ctx.fillRect(0,0,360,360); // Fundo cinza durante o jogo
+            ctx.fillStyle = '#222'; ctx.fillRect(0,0,360,360);
             ctx.fillStyle = 'red'; ctx.beginPath();
             ctx.arc(fruta.x*tTile+tTile/2, fruta.y*tTile+tTile/2, tTile/2.5, 0, Math.PI*2); ctx.fill();
 
@@ -238,8 +235,7 @@
                 dados.totalMacas += placar;
                 if(placar > dados.recorde) dados.recorde = placar;
                 salvar();
-                document.getElementById('msg-morte').innerText = `Bateu, ${nomePlayer}!`;
-                document.getElementById('score-atual').innerText = `${nomePlayer} fez ${placar} ponto${placar!==1?'s':''}!`;
+                document.getElementById('score-atual').innerText = `${nomePlayer} fez ${placar} pontos!`;
                 document.getElementById('game-over-screen').style.display = 'block';
                 return;
             }
@@ -258,7 +254,7 @@
             });
         }
 
-        function voltarMenu() { menuAtivo = true; animarBG(); document.getElementById('game-container').style.display = 'none'; document.getElementById('game-over-screen').style.display = 'none'; document.getElementById('loja').style.display = 'none'; document.getElementById('menu').style.display = 'block'; }
+        function voltarMenu() { emJogo = false; animarFundo(); document.getElementById('game-container').style.display = 'none'; document.getElementById('game-over-screen').style.display = 'none'; document.getElementById('loja').style.display = 'none'; document.getElementById('menu').style.display = 'block'; }
     </script>
 </body>
 </html>
