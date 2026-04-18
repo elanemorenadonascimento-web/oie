@@ -7,39 +7,36 @@
     <style>
         body {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; margin: 0; background-color: #111; color: #fff;
+            min-height: 100vh; margin: 0; background-color: #1a1a1a; color: #fff;
             font-family: 'Segoe UI', sans-serif; overflow: hidden; position: relative;
         }
-        /* Fundo Animado */
-        #bg-canvas { position: absolute; top: 0; left: 0; z-index: -1; filter: blur(2px) opacity(0.3); }
+        /* Fundo Animado do Menu */
+        #bg-canvas { position: absolute; top: 0; left: 0; z-index: -1; filter: opacity(0.2); }
 
         #menu, #game-over-screen, #loja {
-            background-color: rgba(45, 45, 45, 0.9); padding: 25px; border-radius: 15px;
+            background-color: rgba(45, 45, 45, 0.95); padding: 25px; border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8); text-align: center; width: 360px;
             backdrop-filter: blur(10px); border: 1px solid #444;
         }
         #game-over-screen, #loja, #game-container { display: none; }
         
-        h1 { color: #ff3e3e; margin: 0 0 10px 0; font-size: 1.8rem; text-shadow: 0 0 10px rgba(255,62,62,0.5); }
+        h1 { color: #ff3e3e; margin: 0 0 15px 0; font-size: 1.6rem; }
         .campo { margin-bottom: 12px; text-align: left; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; color: #bbb; }
-        select, button { width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.85rem; color: #bbb; }
+        select, button, input { width: 100%; padding: 10px; border-radius: 8px; border: none; font-weight: bold; box-sizing: border-box; }
+        input { background: #444; color: white; margin-bottom: 5px; }
         
-        button { background-color: #4caf50; color: white; margin-top: 10px; transition: 0.2s; }
-        button:hover { transform: scale(1.02); filter: brightness(1.1); }
-
+        button { background-color: #4caf50; color: white; margin-top: 10px; cursor: pointer; }
         .btn-secreto { position: absolute; top: 0; right: 0; width: 45px; height: 45px; background: transparent; border: none; z-index: 100; }
-        .btn-lixeira { position: absolute; bottom: 15px; right: 15px; width: 45px; height: 45px; background: #ff3e3e; border-radius: 50%; border: none; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
+        .btn-lixeira { position: absolute; bottom: 15px; right: 15px; width: 45px; height: 45px; background: #ff3e3e; border-radius: 50%; border: none; cursor: pointer; font-size: 1.2rem; color: white; }
 
-        .stats-topo { display: flex; justify-content: space-around; width: 360px; margin-bottom: 10px; font-size: 1.3rem; font-weight: bold; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 8px; }
+        .stats-topo { display: flex; justify-content: space-around; width: 360px; margin-bottom: 10px; font-size: 1.3rem; font-weight: bold; }
         
-        #lista-cabecas { max-height: 250px; overflow-y: auto; margin: 10px 0; padding-right: 5px; }
-        .item-loja { display: flex; justify-content: space-between; align-items: center; background: #3d3d3d; padding: 10px; margin: 5px 0; border-radius: 8px; border: 1px solid #555; }
-        .item-loja button { width: auto; margin: 0; padding: 5px 12px; font-size: 0.8rem; }
+        #lista-cabecas { max-height: 200px; overflow-y: auto; margin: 10px 0; }
+        .item-loja { display: flex; justify-content: space-between; align-items: center; background: #3d3d3d; padding: 10px; margin: 5px 0; border-radius: 8px; }
+        .item-loja button { width: auto; margin: 0; padding: 5px 12px; }
         
-        canvas#snakeGame { border: 5px solid #333; background: #000; box-shadow: 0 0 20px rgba(0,0,0,1); }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #555; border-radius: 10px; }
+        canvas#snakeGame { border: 4px solid #333; background: #000; }
     </style>
 </head>
 <body>
@@ -49,42 +46,40 @@
     <button class="btn-lixeira" onclick="resetTotal()">🗑️</button>
 
     <div id="menu">
-        <h1>SNAKE ENZO ULTIMATE</h1>
-        <p>🍎 Maçãs: <span id="total-maca">0</span> | 🏆 Recorde: <span id="recorde">0</span></p>
-        
+        <h1>JOGO DE COBRA DO ENZO</h1>
+        <div class="campo">
+            <label>Seu Nome:</label>
+            <input type="text" id="player-name" placeholder="Digite seu nome..." maxlength="15">
+        </div>
         <div class="campo">
             <label>Tamanho do Mapa:</label>
             <select id="map-size">
-                <option value="9">9x9 (Clássico)</option>
-                <option value="12">12x12 (Intermediário)</option>
-                <option value="20" selected>20x20 (Gamer)</option>
+                <option value="9">9x9</option>
+                <option value="12">12x12</option>
+                <option value="20" selected>20x20</option>
             </select>
         </div>
         <div class="campo">
             <label>Cor do Corpo:</label>
             <select id="snake-body-color">
-                <option value="#4caf50">Verde Clássico</option>
-                <option value="#2196f3">Azul Neon</option>
-                <option value="#e91e63">Rosa Porquinho</option>
-                <option value="#ffeb3b">Amarelo Sol</option>
-                <option value="#ff5722">Laranja Fogo</option>
-                <option value="#9c27b0">Roxo Místico</option>
-                <option value="#00bcd4">Ciano Água</option>
-                <option value="#ffffff">Branco Puro</option>
-                <option value="#795548">Marrom Terra</option>
-                <option value="#607d8b">Cinza Espacial</option>
+                <option value="#4caf50">Verde</option>
+                <option value="#2196f3">Azul</option>
+                <option value="#e91e63">Rosa</option>
+                <option value="#ffeb3b">Amarelo</option>
+                <option value="#ffffff">Branco</option>
+                <option value="#9c27b0">Roxo</option>
             </select>
         </div>
         <div class="campo">
             <label>Dificuldade:</label>
             <select id="speed">
-                <option value="350">Lenta (Passeio)</option>
-                <option value="180" selected>Média (Normal)</option>
-                <option value="80">Rápida (Hardcore)</option>
+                <option value="350">Lenta</option>
+                <option value="180" selected>Média</option>
+                <option value="80">Rápida</option>
             </select>
         </div>
-        <button onclick="configurarEIniciar()">INICIAR JOGO</button>
-        <button style="background:#2196f3" onclick="abrirLoja()">LOJA DE CABEÇAS</button>
+        <button onclick="configurarEIniciar()">INICIAR</button>
+        <button style="background:#2196f3" onclick="abrirLoja()">LOJA</button>
     </div>
 
     <div id="loja">
@@ -94,16 +89,16 @@
     </div>
 
     <div id="game-over-screen">
-        <h2>VOCÊ BATEU!</h2>
-        <p id="score-atual" style="font-size: 1.2rem;"></p>
-        <button onclick="reiniciar()">TENTAR DE NOVO</button>
-        <button onclick="voltarMenu()" style="background:#666">MENU PRINCIPAL</button>
+        <h2 id="msg-morte">FIM DE JOGO</h2>
+        <p id="score-atual"></p>
+        <button onclick="reiniciar()">JOGAR DE NOVO</button>
+        <button onclick="voltarMenu()" style="background:#666">MENU</button>
     </div>
 
     <div id="game-container">
         <div class="stats-topo">
-            <span style="color: #ff3e3e;">🍎 <span id="ingame-score">0</span></span>
-            <span style="color: #ffeb3b;">🏆 <span id="ingame-record">0</span></span>
+            <span>🍎 <span id="ingame-score">0</span></span>
+            <span>🏆 <span id="ingame-record">0</span></span>
         </div>
         <canvas id="snakeGame"></canvas>
     </div>
@@ -114,43 +109,41 @@
         const bgCanvas = document.getElementById('bg-canvas');
         const bgCtx = bgCanvas.getContext('2d');
         let hackUsado = false;
+        let menuAtivo = true;
 
-        let dados = JSON.parse(localStorage.getItem('snakeEnzoV3')) || {
-            totalMacas: 0, recorde: 0, cabecaAtual: '⚪', cabecasCompradas: ['⚪']
+        let dados = JSON.parse(localStorage.getItem('snakeEnzoV4')) || {
+            totalMacas: 0, recorde: 0, cabecaAtual: '⚪', cabecasCompradas: ['⚪'], ultimoNome: ''
         };
+        document.getElementById('player-name').value = dados.ultimoNome;
 
         const cabecas = [
-            {id: '⚪', preco: 0, nome: 'Padrão'},
-            {id: '🐍', preco: 10, nome: 'Cobra Real'},
-            {id: '🐷', preco: 10, nome: 'Porquinho'},
-            {id: '🐱', preco: 10, nome: 'Gatinho'},
-            {id: '🐶', preco: 10, nome: 'Cachorrinho'},
-            {id: '🦁', preco: 20, nome: 'Leão'},
-            {id: '🤖', preco: 20, nome: 'Robô Dev'},
-            {id: '👽', preco: 30, nome: 'Invasor'},
-            {id: '👑', preco: 40, nome: 'Rei Enzo'},
-            {id: '🔥', preco: 50, nome: 'Cobra de Fogo'}
+            {id: '⚪', preco: 0, nome: 'Padrão'}, {id: '🐍', preco: 10, nome: 'Cobra'},
+            {id: '🐷', preco: 10, nome: 'Porco'}, {id: '🐱', preco: 10, nome: 'Gato'},
+            {id: '🦁', preco: 20, nome: 'Leão'}, {id: '🤖', preco: 20, nome: 'Robô'},
+            {id: '👽', preco: 30, nome: 'Alien'}, {id: '👑', preco: 40, nome: 'Rei'},
+            {id: '🔥', preco: 50, nome: 'Fogo'}, {id: '💀', preco: 60, nome: 'Caveira'}
         ];
 
-        let cobra, fruta, direcao, placar, loop, tTile, tGrid, velocidade, corCorpo;
+        let cobra, fruta, direcao, placar, loop, tTile, tGrid, velocidade, corCorpo, nomePlayer;
 
-        // Animação de Fundo
+        // Animação Fundo
         bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight;
         let bgSnakes = Array(5).fill().map(() => ({
-            body: Array(10).fill().map((_, i) => ({x: 100 - i*10, y: 100})),
-            color: `hsl(${Math.random()*360}, 50%, 50%)`,
-            dir: Math.random() * Math.PI * 2
+            body: Array(10).fill().map((_, i) => ({x: 100, y: 100})),
+            color: `hsl(${Math.random()*360}, 50%, 50%)`, dir: Math.random() * 6
         }));
 
         function animarBG() {
-            bgCtx.clearRect(0,0,bgCanvas.width, bgCanvas.height);
+            if(!menuAtivo) { bgCtx.clearRect(0,0,bgCanvas.width, bgCanvas.height); return; }
+            bgCtx.fillStyle = 'rgba(26, 26, 26, 0.2)';
+            bgCtx.fillRect(0,0,bgCanvas.width, bgCanvas.height);
             bgSnakes.forEach(s => {
-                s.dir += (Math.random() - 0.5) * 0.5;
-                let head = { x: s.body[0].x + Math.cos(s.dir)*5, y: s.body[0].y + Math.sin(s.dir)*5 };
+                s.dir += (Math.random() - 0.5) * 0.4;
+                let head = { x: s.body[0].x + Math.cos(s.dir)*4, y: s.body[0].y + Math.sin(s.dir)*4 };
                 if(head.x < 0) head.x = bgCanvas.width; if(head.x > bgCanvas.width) head.x = 0;
                 if(head.y < 0) head.y = bgCanvas.height; if(head.y > bgCanvas.height) head.y = 0;
                 s.body.unshift(head); s.body.pop();
-                bgCtx.beginPath(); bgCtx.strokeStyle = s.color; bgCtx.lineWidth = 15; bgCtx.lineCap = 'round';
+                bgCtx.beginPath(); bgCtx.strokeStyle = s.color; bgCtx.lineWidth = 10; bgCtx.lineCap = 'round';
                 s.body.forEach((p, i) => i === 0 ? bgCtx.moveTo(p.x, p.y) : bgCtx.lineTo(p.x, p.y));
                 bgCtx.stroke();
             });
@@ -158,24 +151,19 @@
         }
         animarBG();
 
-        function salvar() { localStorage.setItem('snakeEnzoV3', JSON.stringify(dados)); atualizarUI(); }
+        function salvar() { localStorage.setItem('snakeEnzoV4', JSON.stringify(dados)); atualizarUI(); }
         function atualizarUI() {
-            document.getElementById('total-maca').innerText = dados.totalMacas;
-            document.getElementById('recorde').innerText = dados.recorde;
             document.getElementById('loja-saldo').innerText = dados.totalMacas;
         }
 
         function hack() {
-            if(!hackUsado) {
-                dados.totalMacas += 1000; alert("💰 HACK ATIVADO: +1000 MAÇÃS!");
-                hackUsado = true; salvar();
-            }
+            if(!hackUsado) { dados.totalMacas += 1000; alert("HACK: +1000 Maçãs!"); hackUsado = true; salvar(); abrirLoja(); }
         }
 
         function resetTotal() {
             if(confirm("CERTEZA QUE QUER APAGAR TUDO?")) {
-                dados = { totalMacas: 0, recorde: 0, cabecaAtual: '⚪', cabecasCompradas: ['⚪'] };
-                salvar();
+                dados = { totalMacas: 0, recorde: 0, cabecaAtual: '⚪', cabecasCompradas: ['⚪'], ultimoNome: '' };
+                salvar(); location.reload();
             }
         }
 
@@ -186,34 +174,32 @@
             lista.innerHTML = '';
             cabecas.forEach(c => {
                 const comprou = dados.cabecasCompradas.includes(c.id);
-                const selecionada = dados.cabecaAtual === c.id;
-                lista.innerHTML += `
-                    <div class="item-loja">
-                        <span style="font-size:1.3rem">${c.id} <small>${c.nome}</small></span>
-                        <button onclick="acaoLoja('${c.id}', ${c.preco})" style="background: ${selecionada ? '#4caf50' : '#2196f3'}">
-                            ${comprou ? (selecionada ? 'USANDO' : 'USAR') : c.preco + ' 🍎'}
-                        </button>
-                    </div>`;
+                const sel = dados.cabecaAtual === c.id;
+                lista.innerHTML += `<div class="item-loja"><span>${c.id} ${c.nome}</span>
+                <button onclick="acaoLoja('${c.id}', ${c.preco})" style="background:${sel?'#4caf50':'#2196f3'}">
+                ${comprou?(sel?'USANDO':'USAR'):c.preco+'🍎'}</button></div>`;
             });
+            atualizarUI();
         }
 
         function acaoLoja(id, preco) {
-            if(dados.cabecasCompradas.includes(id)) { dados.cabecaAtual = id; }
-            else if(dados.totalMacas >= preco) {
-                dados.totalMacas -= preco; dados.cabecasCompradas.push(id); dados.cabecaAtual = id;
-            }
+            if(dados.cabecasCompradas.includes(id)) dados.cabecaAtual = id;
+            else if(dados.totalMacas >= preco) { dados.totalMacas -= preco; dados.cabecasCompradas.push(id); dados.cabecaAtual = id; }
             salvar(); abrirLoja();
         }
 
         function configurarEIniciar() {
+            nomePlayer = document.getElementById('player-name').value || "Jogador";
+            dados.ultimoNome = nomePlayer;
             tGrid = parseInt(document.getElementById('map-size').value);
             velocidade = parseInt(document.getElementById('speed').value);
             corCorpo = document.getElementById('snake-body-color').value;
             tTile = 360 / tGrid;
             canvas.width = canvas.height = 360;
+            menuAtivo = false;
             document.getElementById('menu').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
-            reiniciar();
+            salvar(); reiniciar();
         }
 
         function reiniciar() {
@@ -240,10 +226,8 @@
         });
 
         function desenhar() {
-            ctx.fillStyle = '#000'; ctx.fillRect(0,0,360,360);
-            
-            // Desenha a Fruta (Maçã)
-            ctx.fillStyle = '#ff3e3e'; ctx.beginPath();
+            ctx.fillStyle = '#222'; ctx.fillRect(0,0,360,360); // Fundo cinza durante o jogo
+            ctx.fillStyle = 'red'; ctx.beginPath();
             ctx.arc(fruta.x*tTile+tTile/2, fruta.y*tTile+tTile/2, tTile/2.5, 0, Math.PI*2); ctx.fill();
 
             let nx = cobra[0].x, ny = cobra[0].y;
@@ -254,34 +238,27 @@
                 dados.totalMacas += placar;
                 if(placar > dados.recorde) dados.recorde = placar;
                 salvar();
-                document.getElementById('score-atual').innerText = `O Enzo fez ${placar} pontos!`;
+                document.getElementById('msg-morte').innerText = `Bateu, ${nomePlayer}!`;
+                document.getElementById('score-atual').innerText = `${nomePlayer} fez ${placar} ponto${placar!==1?'s':''}!`;
                 document.getElementById('game-over-screen').style.display = 'block';
                 return;
             }
 
             cobra.unshift({x:nx, y:ny});
-            if(nx===fruta.x && ny===fruta.y) {
-                placar++; document.getElementById('ingame-score').innerText = placar; criarFruta();
-            } else { cobra.pop(); }
+            if(nx===fruta.x && ny===fruta.y) { placar++; document.getElementById('ingame-score').innerText = placar; criarFruta(); }
+            else { cobra.pop(); }
 
             cobra.forEach((p, i) => {
                 if(i===0) {
                     ctx.font = `${tTile}px Arial`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                     ctx.fillText(dados.cabecaAtual, p.x*tTile+tTile/2, p.y*tTile+tTile/2);
                 } else {
-                    ctx.fillStyle = corCorpo;
-                    ctx.fillRect(p.x*tTile+1, p.y*tTile+1, tTile-2, tTile-2);
+                    ctx.fillStyle = corCorpo; ctx.fillRect(p.x*tTile+1, p.y*tTile+1, tTile-2, tTile-2);
                 }
             });
         }
 
-        function voltarMenu() { 
-            document.getElementById('game-container').style.display = 'none'; 
-            document.getElementById('game-over-screen').style.display = 'none'; 
-            document.getElementById('loja').style.display = 'none'; 
-            document.getElementById('menu').style.display = 'block'; 
-        }
-        atualizarUI();
+        function voltarMenu() { menuAtivo = true; animarBG(); document.getElementById('game-container').style.display = 'none'; document.getElementById('game-over-screen').style.display = 'none'; document.getElementById('loja').style.display = 'none'; document.getElementById('menu').style.display = 'block'; }
     </script>
 </body>
 </html>
