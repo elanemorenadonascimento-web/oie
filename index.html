@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Desculpas de Dev</title>
+    <style>
+        /* --- ESTILO (CSS) - Onde a mágica visual acontece --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a; /* Azul bem escuro */
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #1e293b;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid #334155;
+            max-width: 450px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #38bdf8; /* Azul claro brilhante */
+            margin-bottom: 0.5rem;
+        }
+
+        #caixa-desculpa {
+            min-height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0f172a;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border-left: 5px solid #38bdf8;
+        }
+
+        #texto-desculpa {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: #e2e8f0;
+        }
+
+        button {
+            background-color: #38bdf8;
+            color: #0f172a;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #7dd3fc;
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Dev Desculpas 💻</h1>
+        <p>O bug apareceu? Escolha sua defesa:</p>
+        
+        <div id="caixa-desculpa">
+            <p id="texto-desculpa">Clique no botão para se salvar...</p>
+        </div>
+
+        <button onclick="sortear()">Gerar Desculpa</button>
+
+        <div class="footer">
+            Feito para quem ama Python e odeia bugs.
+        </div>
+    </div>
+
+    <script>
+        /* --- LÓGICA (JavaScript) - O cérebro do site --- */
+        function sortear() {
+            const desculpas = [
+                "Na minha máquina funciona perfeitamente!",
+                "Isso deve ser problema de cache do navegador.",
+                "Eu não mexi nessa parte do código hoje.",
+                "A API de terceiros deve estar fora do ar.",
+                "O código estava certo, o compilador que bugou.",
+                "Estranho... funcionava ontem à noite.",
+                "Foi o estagiário que deu commit por engano.",
+                "Isso é uma feature, não um erro.",
+                "O prazo estava curto demais para testar tudo.",
+                "Deve ser alguma atualização do Windows que quebrou."
+            ];
+
+            const index = Math.floor(Math.random() * desculpas.length);
+            document.getElementById('texto-desculpa').innerText = desculpas[index];
+        }
+    </script>
+</body>
+</html>
